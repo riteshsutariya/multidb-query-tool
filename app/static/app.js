@@ -55,9 +55,9 @@ function renderClients() {
   host.innerHTML = CLIENTS.map(c => `
     <label>
       <input type="checkbox" class="client-cb" value="${c.name}" checked />
-      <span>
+      <span class="client-label-row">
         ${escapeHtml(c.label)}
-        <div class="client-sub">${escapeHtml(c.host)} / ${escapeHtml(c.database)}</div>
+        <span class="client-info-btn" title="${escapeHtml(c.host)} / ${escapeHtml(c.database)}">ℹ</span>
       </span>
     </label>
   `).join("");

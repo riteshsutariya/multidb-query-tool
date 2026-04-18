@@ -70,7 +70,16 @@ body {
 }
 .client-list label:hover { background: var(--panel-2); }
 .client-list input { accent-color: var(--accent); flex-shrink: 0; }
-.client-sub { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+.client-label-row { display: flex; align-items: center; gap: 5px; }
+.client-info-btn {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.5;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.client-list label:hover .client-info-btn { opacity: 1; color: var(--accent); }
 
 .preset-list .preset {
   padding: 6px 8px; border-radius: 5px; cursor: pointer;
