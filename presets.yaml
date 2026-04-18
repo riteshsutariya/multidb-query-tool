@@ -1,0 +1,102 @@
+# Saved / preset queries.
+# These appear in the UI so you can run common diagnostics in one click.
+# Use :placeholder syntax for parameters — the UI will render input fields.
+
+presets:
+  - id: obj_by_name
+    title: "Object definition lookup"
+    description: "Find an object in object_repository by name (wildcard supported)."
+    sql: |
+      SELECT *
+      FROM object_repository
+      WHERE name ILIKE :name_pattern
+      ORDER BY name
+      LIMIT 100;
+    params:
+      - name: name_pattern
+        default: "%%"
+        hint: "e.g. %Customer% (use % as wildcard)"
+
+  - id: service_by_name
+    title: "Service registry lookup"
+    description: "Search service_registry by service name / identifier."
+    sql: |
+      SELECT *
+      FROM service_registry
+      WHERE name ILIKE :name_pattern
+      ORDER BY name
+      LIMIT 100;
+    params:
+      - name: name_pattern
+        default: "%%"
+        hint: "e.g. %Create% "
+
+  - id: interaction_for_service
+    title: "Form / interaction for a service"
+    description: "Pull service_interaction rows for a given service name."
+    sql: |
+      SELECT si.*
+      FROM service_interaction si
+      JOIN service_registry sr ON sr.id = si.service_id
+      WHERE sr.name = :service_name
+      ORDER BY si.id
+      LIMIT 200;
+    params:
+      - name: service_name
+        default: ""
+        hint: "exact service name"
+
+  - id: orphan_interactions
+    title: "Orphan service_interaction rows"
+    description: "service_interaction rows whose service_id no longer exists in service_registry — a common breakage."
+    sql: |
+      SELECT si.*
+      FROM service_interaction si
+      LEFT JOIN service_registry sr ON sr.id = si.service_id
+      WHERE sr.id IS NULL
+      LIMIT 500;
+    params: []
+
+  - id: services_missing_object
+    title: "Services referencing missing objects"
+    description: "service_registry rows pointing at object_repository ids that no longer exist."
+    sql: |
+      SELECT sr.*
+      FROM service_registry sr
+      LEFT JOIN object_repository o ON o.id = sr.object_id
+      WHERE sr.object_id IS NOT NULL AND o.id IS NULL
+      LIMIT 500;
+    params: []
+
+  - id: row_counts
+    title: "Row counts of core tables"
+    description: "Quick health snapshot across the three tables."
+    sql: |
+      SELECT 'object_repository'  AS table_name, COUNT(*) AS rows FROM object_repository
+      UNION ALL
+      SELECT 'service_registry',   COUNT(*) FROM service_registry
+      UNION ALL
+      SELECT 'service_interaction',COUNT(*) FROM service_interaction;
+    params: []
+
+  - id: recent_changes
+    title: "Recently updated rows (last N days)"
+    description: "Catches recently-modified config that might correlate with a reported issue. Adjust column name if yours differs."
+    sql: |
+      SELECT 'object_repository' AS src, id::text, name, updated_at
+      FROM object_repository
+      WHERE updated_at >= NOW() - (:days || ' days')::interval
+      UNION ALL
+      SELECT 'service_registry', id::text, name, updated_at
+      FROM service_registry
+      WHERE updated_at >= NOW() - (:days || ' days')::interval
+      UNION ALL
+      SELECT 'service_interaction', id::text, COALESCE(name,'—'), updated_at
+      FROM service_interaction
+      WHERE updated_at >= NOW() - (:days || ' days')::interval
+      ORDER BY updated_at DESC
+      LIMIT 500;
+    params:
+      - name: days
+        default: "7"
+        hint: "number of days"

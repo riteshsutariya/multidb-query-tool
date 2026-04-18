@@ -1,0 +1,21 @@
+# Copy this file to config.yaml and fill in your credentials.
+# config.yaml is gitignored — never commit real credentials.
+
+clients:
+  - name: CLIENT_ONE
+    label: "Client One (SB)"
+    host: your-cluster.rds.amazonaws.com
+    port: 5432
+    database: your_database
+    user: your_readonly_user
+    password: "your_password"
+    sslmode: prefer
+    schema: your_schema
+
+  # Add as many clients as you need...
+
+safety:
+  read_only: true
+  statement_timeout_seconds: 30
+  max_rows: 5000
+  max_concurrency: 8

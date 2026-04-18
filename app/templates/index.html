@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Multi-DB Query Tool</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">🗄 Multi-DB Query Tool</div>
+        <div class="meta" id="safetyBadge"></div>
+    </header>
+
+    <main class="layout">
+        <!-- LEFT: clients + presets -->
+        <aside class="sidebar">
+            <section>
+                <div class="section-header">
+                    <h3>Clients</h3>
+                    <div class="mini-actions">
+                        <a href="#" id="selectAll">all</a> ·
+                        <a href="#" id="selectNone">none</a>
+                    </div>
+                </div>
+                <div id="clientList" class="client-list"></div>
+            </section>
+
+            <section>
+                <div class="section-header"><h3>Saved queries</h3></div>
+                <div id="presetList" class="preset-list"></div>
+            </section>
+        </aside>
+
+        <!-- RIGHT: editor + results -->
+        <section class="workspace">
+            <div class="editor-pane">
+                <div class="editor-header">
+                    <span id="activePresetLabel" class="muted">Custom query</span>
+                    <div class="spacer"></div>
+                    <button id="runBtn" class="primary">Run ▶</button>
+                </div>
+
+                <textarea id="sqlBox" spellcheck="false"
+                    placeholder="SELECT * FROM object_repository WHERE name ILIKE :name_pattern"></textarea>
+
+                <div id="paramsArea" class="params-area"></div>
+            </div>
+
+            <div class="results-pane" id="resultsPane">
+                <div class="empty-state">
+                    Pick clients on the left, write or choose a query, hit <b>Run</b>.
+                    Results appear here side-by-side, one card per client.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

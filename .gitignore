@@ -1,0 +1,17 @@
+# Python virtualenv
+.venv/
+
+# DB credentials — use config.yaml.example as template
+config.yaml
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
