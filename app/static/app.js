@@ -252,6 +252,64 @@ function renderTabs() {
       });
     });
   });
+
+  // Column resize handles
+  pane.querySelectorAll("table.result th, table.kv-grid .kv-key, table.kv-grid .kv-col-hdr").forEach(th => {
+    const handle = document.createElement("span");
+    handle.className = "col-resize-handle";
+    th.appendChild(handle);
+
+    handle.addEventListener("mousedown", e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const startX = e.clientX;
+      const table = th.closest("table");
+
+      // Collect all cells in this logical column
+      let cells;
+      if (th.classList.contains("kv-col-hdr") && th.dataset.colidx !== undefined) {
+        // value column in kv-grid: nth-child = colidx+2 (1=kv-key, 2=first val col)
+        const nth = Number(th.dataset.colidx) + 2;
+        cells = Array.from(table.querySelectorAll(`thead tr th:nth-child(${nth}), tbody tr td:nth-child(${nth})`));
+      } else if (th.classList.contains("kv-key")) {
+        cells = Array.from(table.querySelectorAll(".kv-key, .kv-col-hdr-key"));
+      } else {
+        // normal table: find th index
+        const idx = Array.from(th.parentElement.children).indexOf(th);
+        cells = Array.from(table.querySelectorAll(`thead tr th:nth-child(${idx+1}), tbody tr td:nth-child(${idx+1})`));
+      }
+
+      // Snapshot actual rendered width before any drag
+      const startW = th.getBoundingClientRect().width;
+
+      // Lock all cells to their current rendered width so table-layout:fixed is stable
+      cells.forEach(c => {
+        const w = c.getBoundingClientRect().width;
+        c.style.width = w + "px";
+        c.style.minWidth = w + "px";
+        c.style.maxWidth = w + "px";
+      });
+
+      document.body.classList.add("col-resizing");
+
+      const onMove = e => {
+        const w = Math.max(40, startW + e.clientX - startX);
+        cells.forEach(c => {
+          c.style.width = w + "px";
+          c.style.minWidth = w + "px";
+          c.style.maxWidth = w + "px";
+        });
+      };
+      const onUp = () => {
+        document.body.classList.remove("col-resizing");
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
 }
 
 function renderToolbar(r) {
@@ -309,9 +367,15 @@ function isJsonValue(raw) {
 
 function renderKvGrid(r) {
   const numRows = r.rows.length;
-  const rowHeaders = numRows === 1
-    ? ""
-    : `<th class="kv-col-hdr"></th>` + r.rows.map((_, i) => `<th class="kv-col-hdr">Row ${i + 1}</th>`).join("");
+
+  // colgroup lets resize on <th> propagate to all <td> in that column
+  const colgroup = `<colgroup><col class="kv-col-key"/>${r.rows.map((_, i) => `<col class="kv-col-val" data-colidx="${i}"/>`).join("")}</colgroup>`;
+
+  // always render thead so every value column gets a draggable resize handle
+  const rowLabels = numRows === 1
+    ? `<th class="kv-col-hdr" data-colidx="0">Value</th>`
+    : r.rows.map((_, i) => `<th class="kv-col-hdr" data-colidx="${i}">Row ${i + 1}</th>`).join("");
+  const thead = `<thead><tr><th class="kv-col-hdr kv-col-hdr-key"></th>${rowLabels}</tr></thead>`;
 
   const bodyRows = r.columns.map((col, ci) => {
     const cells = r.rows.map((row) => {
@@ -327,8 +391,7 @@ function renderKvGrid(r) {
     return `<tr><th class="kv-key">${escapeHtml(col)}</th>${cells}</tr>`;
   }).join("");
 
-  const thead = numRows > 1 ? `<thead><tr>${rowHeaders}</tr></thead>` : "";
-  return `<table class="kv-grid">${thead}<tbody>${bodyRows}</tbody></table>`;
+  return `<table class="kv-grid">${colgroup}${thead}<tbody>${bodyRows}</tbody></table>`;
 }
 
 function fmt(v) {

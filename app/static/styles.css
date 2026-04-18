@@ -268,6 +268,7 @@ table.result th {
   color: var(--muted);
   position: sticky; top: 0; z-index: 1;
   font-weight: 600;
+  user-select: none;
 }
 table.result tr:hover td { background: rgba(106,169,255,0.05); }
 
@@ -277,7 +278,7 @@ table.kv-grid {
   border-collapse: collapse;
   font-family: var(--mono);
   font-size: 12px;
-  table-layout: fixed;
+  table-layout: auto;
 }
 table.kv-grid .kv-col-hdr {
   background: var(--panel-2);
@@ -288,6 +289,11 @@ table.kv-grid .kv-col-hdr {
   position: sticky; top: 0; z-index: 2;
   text-align: center;
   font-size: 11px;
+  user-select: none;
+}
+table.kv-grid .kv-col-hdr-key {
+  background: var(--panel-2);
+  position: sticky; top: 0; left: 0; z-index: 3;
 }
 table.kv-grid .kv-key {
   width: 180px;
@@ -324,6 +330,33 @@ table.kv-grid .kv-val.expanded {
   background: rgba(106,169,255,0.05);
 }
 table.kv-grid tr:hover .kv-key { color: var(--text); }
+
+/* ---- column resize handle ---- */
+.col-resize-handle {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.col-resize-handle::after {
+  content: "";
+  display: block;
+  width: 2px;
+  height: 60%;
+  background: var(--border);
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.col-resize-handle:hover::after {
+  background: var(--accent);
+  height: 80%;
+}
+body.col-resizing { cursor: col-resize; user-select: none; }
+body.col-resizing .col-resize-handle::after { background: var(--accent); }
 
 /* ---- JSON view button ---- */
 .json-view-btn {
